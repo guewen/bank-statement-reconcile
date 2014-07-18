@@ -19,10 +19,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
+import logging
 
 from itertools import product
 from openerp.osv import orm
 from openerp import pooler
+
+
+_logger = logging.getLogger(__name__)
 
 
 class easy_reconcile_advanced(orm.AbstractModel):
@@ -264,10 +268,12 @@ class easy_reconcile_advanced(orm.AbstractModel):
         reconcile_groups = []
 
         # XXX
-        print("XXX gotta {} lines to reconcile".format(len(credit_lines)))
+        _logger.info("XXX gotta %d credit lines to reconcile",
+                     len(credit_lines))
 
-        for credit_line in credit_lines:
-            print ".",  # XXX
+        for idx, credit_line in enumerate(credit_lines):
+            if (idx + 1) % 10 == 0:
+                _logger.info("... 10 credit lines inspected ...")
             if self._skip_line(cr, uid, rec, credit_line, context=context):
                 continue
 
@@ -281,20 +287,24 @@ class easy_reconcile_advanced(orm.AbstractModel):
             line_ids = opposite_ids + [credit_line['id']]
             for group in reconcile_groups:
                 if any([lid in group for lid in opposite_ids]):
+                    _logger.info("New lines %s matched with an existing "
+                                 "group %s", line_ids, group)
                     group.update(line_ids)
                     break
             else:
+                _logger.info("New group of lines matched %s", line_ids)
                 reconcile_groups.append(set(line_ids))
 
         lines_by_id = dict([(l['id'], l) for l in credit_lines + debit_lines])
 
         # XXX
-        print("XXX gotta {} groups to reconcile".format(len(reconcile_groups)))
+        _logger.info("XXX gotta %d groups to reconcile", len(reconcile_groups))
 
         for group_count, reconcile_group_ids in enumerate(reconcile_groups):
 
             # XXX
-            print("XXX reconciling group {}".format(group_count))
+            _logger.info("XXX reconciling group %d with ids %s", group_count,
+                         reconcile_group_ids)
 
             group_lines = [lines_by_id[lid] for lid in reconcile_group_ids]
             reconciled, full = self._reconcile_lines(
@@ -311,6 +321,6 @@ class easy_reconcile_advanced(orm.AbstractModel):
                 cr.commit()
 
                 # XXX
-                print("XXX and I commit after {} groups".format(group_count))
+                _logger.info("XXX and I commit after %d groups", group_count)
 
         return reconciled_ids, partial_reconciled_ids
