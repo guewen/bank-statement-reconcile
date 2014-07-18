@@ -45,6 +45,7 @@ class easy_reconcile_advanced(orm.AbstractModel):
 
         query = ' '.join((select, sql_from, where, where2))
 
+        _logger.info('_query_debit %s', cr.mogrify(query, params + params2))
         cr.execute(query, params + params2)
         return cr.dictfetchall()
 
@@ -59,6 +60,7 @@ class easy_reconcile_advanced(orm.AbstractModel):
 
         query = ' '.join((select, sql_from, where, where2))
 
+        _logger.info('_query_credit %s', cr.mogrify(query, params + params2))
         cr.execute(query, params + params2)
         return cr.dictfetchall()
 
