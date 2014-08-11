@@ -184,13 +184,7 @@ class AccountStatementCompletionRule(orm.Model):
         res = {}
         inv = self._find_invoice(cr, uid, line, inv_type, context=context)
         if inv:
-            # FIXME use only commercial_partner_id of invoice in 7.1
-            # this is for backward compatibility in 7.0 before
-            # the refactoring of res.partner
-            if hasattr(inv, 'commercial_partner_id'):
-                partner_id = inv.commercial_partner_id.id
-            else:
-                partner_id = inv.partner_id.id
+            partner_id = inv.commercial_partner_id.id
 
             res = {'partner_id': partner_id,
                    'account_id': inv.account_id.id,
@@ -257,7 +251,7 @@ class AccountStatementCompletionRule(orm.Model):
         st_obj = self.pool.get('account.bank.statement.line')
         res = {}
         # As we have to iterate on each partner for each line,
-        #  we memoize the pair to avoid
+        #  we memoize the pair to avoid
         # to redo computation for each line.
         # Following code can be done by a single SQL query
         # but this option is not really maintanable
@@ -554,7 +548,7 @@ class AccountBankStatement(orm.Model):
 
         completion_date = datetime.datetime.now().strftime(DEFAULT_SERVER_DATETIME_FORMAT)
         message = (_("%s Bank Statement ID %s has %s/%s lines completed by %s \n%s\n%s\n") %
-                   (completion_date, stat_id, number_imported, number_line, user_name, 
+                   (completion_date, stat_id, number_imported, number_line, user_name,
                     error_msg, log))
         self.write(cr, uid, [stat_id], {'completion_logs': message}, context=context)
 
